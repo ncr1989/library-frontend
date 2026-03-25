@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth';
 import { Navbar } from '../../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-emprunts',
@@ -21,22 +22,45 @@ export class Emprunts implements OnInit {
   filtered: any[] = [];
   loading = false;
   selectedStatut = '';
+  errorMessage = '';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() { this.loadEmprunts(); }
 
+  // loadEmprunts() {
+  //   this.loading = true;
+  //   this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
+  //     next: (data) => {
+  //       this.emprunts = data;
+  //       this.applyFilter();
+  //       this.loading = false;
+  //     },
+  //     error: () => this.loading = false
+  //   });
+  // }
+
   loadEmprunts() {
-    this.loading = true;
-    this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
-      next: (data) => {
-        this.emprunts = data;
-        this.applyFilter();
-        this.loading = false;
-      },
-      error: () => this.loading = false
-    });
-  }
+  this.loading = true;
+
+  this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
+    next: (data) => {
+      console.log('Emprunts:', data);
+
+      this.emprunts = data;
+
+      // 🔥 IMPORTANT: initialize filtered directly
+      this.filtered = data;
+
+      this.loading = false;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.errorMessage = 'Erreur de chargement.';
+      this.loading = false;
+    }
+  });
+}
 
   applyFilter() {
     this.filtered = this.emprunts.filter(e => {

@@ -4,6 +4,8 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth';
 import { Navbar } from '../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
+
 
 @Component({
   selector: 'app-dashboard',
@@ -33,7 +35,8 @@ export class Dashboard implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -43,77 +46,78 @@ export class Dashboard implements OnInit {
     this.loadStats();
   }
 
-  // loadStats() {
-  //   this.loading = true;
-
-  //   // Load livres count
-  //   this.http.get<any[]>(`${this.apiUrl}/livres`).subscribe({
-  //     next: (data) => this.stats.livres = data.length,
-  //     error: () => this.stats.livres = 0
-  //   });
-
-  //   // Load emprunts
-  //   this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
-  //     next: (data) => {
-  //       this.stats.emprunts = data.length;
-  //       this.stats.retards = data.filter(e => e.enRetard).length;
-  //       this.recentEmprunts = data.slice(0, 5); // last 5
-  //       this.loading = false;
-  //     },
-  //     error: () => {
-  //       this.loading = false;
-  //     }
-  //   });
-
-  //   // Load utilisateurs (admin only)
-  //   if (this.isAdmin) {
-  //     this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
-  //       next: (data) => this.stats.utilisateurs = data.length,
-  //       error: () => this.stats.utilisateurs = 0
-  //     });
-  //   }
-  // }
-
   loadStats() {
-  this.loading = false;
+    this.loading = true;
 
-  this.stats = {
-    livres: 42,
-    emprunts: 15,
-    utilisateurs: 8,
-    retards: 3
-  };
+    // Load livres count
+    this.http.get<any[]>(`${this.apiUrl}/livres`).subscribe({
+      next: (data) => this.stats.livres = data.length,
+      error: () => this.stats.livres = 0
+    });
 
-  this.recentEmprunts = [
-    {
-      id: 1,
-      utilisateur: { nom: 'Dupont', prenom: 'Jean' },
-      dateDebut: '2024-01-01',
-      dateFinPrevue: '2024-01-15',
-      enRetard: false,
-      dateRetourEffective: '2024-01-14',
-      montantAmende: 0
-    },
-    {
-      id: 2,
-      utilisateur: { nom: 'Martin', prenom: 'Alice' },
-      dateDebut: '2024-01-05',
-      dateFinPrevue: '2024-01-10',
-      enRetard: true,
-      dateRetourEffective: null,
-      montantAmende: 15.5
-    },
-    {
-      id: 3,
-      utilisateur: { nom: 'Bernard', prenom: 'Paul' },
-      dateDebut: '2024-01-08',
-      dateFinPrevue: '2024-01-22',
-      enRetard: false,
-      dateRetourEffective: null,
-      montantAmende: 0
+    // Load emprunts
+    this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
+      next: (data) => {
+        this.stats.emprunts = data.length;
+        this.stats.retards = data.filter(e => e.enRetard).length;
+        this.recentEmprunts = data.slice(0, 5); // last 5
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+      }
+    });
+
+    // Load utilisateurs (admin only)
+    if (this.isAdmin) {
+      this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
+        next: (data) => this.stats.utilisateurs = data.length,
+        error: () => this.stats.utilisateurs = 0
+      });
     }
-  ];
-}
+  }
+
+//   loadStats() {
+//   this.loading = false;
+
+//   this.stats = {
+//     livres: 42,
+//     emprunts: 15,
+//     utilisateurs: 8,
+//     retards: 3
+//   };
+
+//   this.recentEmprunts = [
+//     {
+//       id: 1,
+//       utilisateur: { nom: 'Dupont', prenom: 'Jean' },
+//       dateDebut: '2024-01-01',
+//       dateFinPrevue: '2024-01-15',
+//       enRetard: false,
+//       dateRetourEffective: '2024-01-14',
+//       montantAmende: 0
+//     },
+//     {
+//       id: 2,
+//       utilisateur: { nom: 'Martin', prenom: 'Alice' },
+//       dateDebut: '2024-01-05',
+//       dateFinPrevue: '2024-01-10',
+//       enRetard: true,
+//       dateRetourEffective: null,
+//       montantAmende: 15.5
+//     },
+//     {
+//       id: 3,
+//       utilisateur: { nom: 'Bernard', prenom: 'Paul' },
+//       dateDebut: '2024-01-08',
+//       dateFinPrevue: '2024-01-22',
+//       enRetard: false,
+//       dateRetourEffective: null,
+//       montantAmende: 0
+//     }
+//   ];
+// }
 
   logout() {
     this.authService.logout();

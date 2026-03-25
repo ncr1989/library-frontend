@@ -11,30 +11,31 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {}
 
-//  // login(email: string, password: string) {
-//     return this.http.post<any>(`${this.apiUrl}/login`, { email, password })
-//       .pipe(tap(response => {
-//         localStorage.setItem('token', response.token);
-//         localStorage.setItem('role', response.role);
-//         localStorage.setItem('nom', response.nom);
-//         localStorage.setItem('prenom', response.prenom);
-//         localStorage.setItem('userId', response.id);
-//       }));
-//   } 
-
-
   login(email: string, password: string) {
-  // fake login — always succeeds
-  localStorage.setItem('token', 'fake_token');
-  localStorage.setItem('role', 'ADMIN');
-  localStorage.setItem('nom', 'Admin');
-  localStorage.setItem('prenom', 'Super');
-  localStorage.setItem('userId', "1");
-  return new Observable(observer => {
-    observer.next({});
-    observer.complete();
-  });
-}
+    return this.http.post<any>(`${this.apiUrl}/login`, { email, password })
+      .pipe(tap(response => {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('role', response.role);
+        localStorage.setItem('nom', response.nom);
+        localStorage.setItem('prenom', response.prenom);
+        localStorage.setItem('userId', response.id);
+      }));
+  } 
+
+
+//   login(email: string, password: string) {
+//   // fake login — always succeeds
+//   localStorage.setItem('token', 'fake_token');
+//   localStorage.setItem('role', 'ADMIN');
+//   localStorage.setItem('nom', 'Admin');
+//   localStorage.setItem('prenom', 'Super');
+//   localStorage.setItem('userId', "1");
+//   return new Observable(observer => {
+//     observer.next({});
+//     observer.complete();
+//   });
+// }
+
   logout() {
     localStorage.clear();
     this.router.navigate(['/login']);

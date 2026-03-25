@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth';
 import { Navbar } from '../../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-ouvrages',
@@ -28,6 +29,7 @@ export class Ouvrages implements OnInit {
 
   showModal = false;
   isEditing = false;
+  
 
   form: any = {
     id: null,
@@ -40,22 +42,32 @@ export class Ouvrages implements OnInit {
     dateDeParution: ''
   };
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() { this.loadOuvrages(); }
 
   loadOuvrages() {
-    this.loading = true;
-    this.http.get<any[]>(`${this.apiUrl}/ouvrages`).subscribe({
-      next: (data) => {
-        this.ouvrages = data;
-        this.applyFilter();
-        this.loading = false;
-      },
-      error: () => { this.errorMessage = 'Erreur de chargement.'; this.loading = false; }
-    });
-  }
+  this.loading = true;
 
+  this.http.get<any[]>(`${this.apiUrl}/ouvrages`).subscribe({
+    next: (data) => {
+      console.log('OUVRAGES:', data);
+
+      this.ouvrages = data;
+
+      // 🔥 IMPORTANT: initialize filtered directly
+      this.filtered = data;
+
+      this.loading = false;
+      this.cdr.detectChanges();
+      
+    },
+    error: () => {
+      this.errorMessage = 'Erreur de chargement.';
+      this.loading = false;
+    }
+  });
+}
   applyFilter() {
     this.filtered = this.ouvrages.filter(o => {
       const matchSearch = !this.searchTerm ||
@@ -100,19 +112,32 @@ export class Ouvrages implements OnInit {
   }
 
   save() {
-    const endpoint = this.form.type === 'LIVRE' ? 'livres' : 'revues';
-    if (this.isEditing) {
-      this.http.put(`${this.apiUrl}/${endpoint}/${this.form.id}`, this.form).subscribe({
-        next: () => { this.successMessage = 'Ouvrage modifié.'; this.showModal = false; this.loadOuvrages(); },
-        error: () => this.errorMessage = 'Erreur lors de la modification.'
-      });
-    } else {
-      this.http.post(`${this.apiUrl}/${endpoint}`, this.form).subscribe({
-        next: () => { this.successMessage = 'Ouvrage créé.'; this.showModal = false; this.loadOuvrages(); },
-        error: () => this.errorMessage = 'Erreur lors de la création.'
-      });
-    }
+  const endpoint = this.form.type === 'LIVRE' ? 'livres' : 'revues';
+
+  if (this.isEditing) {
+    this.http.put(`${this.apiUrl}/${endpoint}/${this.form.id}`, this.form).subscribe({
+      next: () => {
+        this.showModal = false;        
+        this.successMessage = 'Ouvrage modifié.';
+        this.loadOuvrages();
+      },
+      error: () => {
+        this.errorMessage = 'Erreur lors de la modification.';
+      }
+    });
+  } else {
+    this.http.post(`${this.apiUrl}/${endpoint}`, this.form).subscribe({
+      next: () => {
+        this.showModal = false;        
+        this.successMessage = 'Ouvrage créé.';
+        this.loadOuvrages();
+      },
+      error: (err) => {
+        this.errorMessage = 'Erreur lors de la création: ' + err.message;
+      }
+    });
   }
+}
 
   delete(o: any) {
     if (!confirm(`Supprimer "${o.titre}" ?`)) return;

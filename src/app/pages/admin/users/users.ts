@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth';
 import { Navbar } from '../../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-users',
@@ -39,26 +40,49 @@ export class Users implements OnInit {
     role: 'ETUDIANT'
   };
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadUsers();
   }
 
+  // loadUsers() {
+  //   this.loading = true;
+  //   this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
+  //     next: (data) => {
+  //       this.utilisateurs = data;
+  //       this.applyFilter();
+  //       this.loading = false;
+  //     },
+  //     error: () => {
+  //       this.errorMessage = 'Erreur lors du chargement des utilisateurs.';
+  //       this.loading = false;
+  //     }
+  //   });
+  // }
+
   loadUsers() {
-    this.loading = true;
-    this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
-      next: (data) => {
-        this.utilisateurs = data;
-        this.applyFilter();
-        this.loading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Erreur lors du chargement des utilisateurs.';
-        this.loading = false;
-      }
-    });
-  }
+  this.loading = true;
+
+  this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
+    next: (data) => {
+      console.log('API DATA:', data);
+
+      this.utilisateurs = data;
+
+      // ✅ ALWAYS initialize filtered directly
+      this.filtered = data;
+      
+
+      this.loading = false;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.errorMessage = 'Erreur lors du chargement des utilisateurs.';
+      this.loading = false;
+    }
+  });
+}
 
   applyFilter() {
     this.filtered = this.utilisateurs.filter(u => {
