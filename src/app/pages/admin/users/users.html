@@ -1,0 +1,144 @@
+<div class="min-vh-100 bg-light">
+
+  <!-- Navbar -->
+  <app-navbar></app-navbar>
+
+  <div class="container-fluid px-4 py-4">
+
+    <!-- Alerts -->
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible">
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage=''"></button>
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage=''"></button>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold mb-0">Gestion des utilisateurs</h4>
+      <button class="btn btn-primary" (click)="openAdd()">
+        + Ajouter un utilisateur
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="d-flex gap-2 mb-3">
+      <input
+        type="text"
+        class="form-control"
+        style="max-width: 300px;"
+        placeholder="Rechercher par nom ou email..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilter()"
+      />
+      <select class="form-select" style="max-width: 180px;" [(ngModel)]="selectedRole" (ngModelChange)="applyFilter()">
+        <option value="">Tous les rôles</option>
+        <option value="ETUDIANT">Étudiant</option>
+        <option value="ENSEIGNANT">Enseignant</option>
+        <option value="BIBLIOTHECAIRE">Bibliothécaire</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Utilisateur</th>
+              <th>Email</th>
+              <th>Rôle</th>
+              <th>Téléphone</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loading">
+              <td colspan="5" class="text-center py-4">
+                <div class="spinner-border text-primary"></div>
+              </td>
+            </tr>
+            <tr *ngIf="!loading && filtered.length === 0">
+              <td colspan="5" class="text-center py-4 text-muted">Aucun utilisateur trouvé.</td>
+            </tr>
+            <tr *ngFor="let u of filtered">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-semibold"
+                       style="width:34px;height:34px;font-size:12px;">
+                    {{ getInitials(u) }}
+                  </div>
+                  {{ u.nom }} {{ u.prenom }}
+                </div>
+              </td>
+              <td class="text-muted">{{ u.email }}</td>
+              <td>
+                <span class="badge rounded-pill" [ngClass]="getRoleBadgeClass(u)">
+                  {{ getRoleLabel(u) }}
+                </span>
+              </td>
+              <td class="text-muted">{{ u.telephone || '—' }}</td>
+              <td>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-primary" (click)="openEdit(u)">Modifier</button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="delete(u)">Supprimer</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="modal d-block" style="background:rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ isEditing ? 'Modifier' : 'Ajouter' }} un utilisateur</h5>
+          <button type="button" class="btn-close" (click)="showModal=false"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Nom</label>
+              <input class="form-control" [(ngModel)]="form.nom" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">Prénom</label>
+              <input class="form-control" [(ngModel)]="form.prenom" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email</label>
+              <input class="form-control" type="email" [(ngModel)]="form.email" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Mot de passe {{ isEditing ? '(laisser vide pour ne pas changer)' : '' }}</label>
+              <input class="form-control" type="password" [(ngModel)]="form.password" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">Téléphone</label>
+              <input class="form-control" [(ngModel)]="form.telephone" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">Rôle</label>
+              <select class="form-select" [(ngModel)]="form.role">
+                <option value="ETUDIANT">Étudiant</option>
+                <option value="ENSEIGNANT">Enseignant</option>
+                <option value="BIBLIOTHECAIRE">Bibliothécaire</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showModal=false">Annuler</button>
+          <button class="btn btn-primary" (click)="save()">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,64 @@
+<div class="min-vh-100 bg-light">
+
+  <app-navbar></app-navbar>
+
+  <div class="container-fluid px-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold mb-0">Tous les emprunts</h4>
+      <select class="form-select" style="max-width:180px;"
+        [(ngModel)]="selectedStatut" (ngModelChange)="applyFilter()">
+        <option value="">Tous les statuts</option>
+        <option value="ENCOURS">En cours</option>
+        <option value="RETARD">En retard</option>
+        <option value="RETOURNE">Retourné</option>
+      </select>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Utilisateur</th>
+              <th>Date début</th>
+              <th>Date fin prévue</th>
+              <th>Retour effectif</th>
+              <th>Statut</th>
+              <th>Amende</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loading">
+              <td colspan="7" class="text-center py-4">
+                <div class="spinner-border text-primary"></div>
+              </td>
+            </tr>
+            <tr *ngIf="!loading && filtered.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">Aucun emprunt trouvé.</td>
+            </tr>
+            <tr *ngFor="let e of filtered">
+              <td class="text-muted">#{{ e.id }}</td>
+              <td>{{ e.utilisateur?.nom }} {{ e.utilisateur?.prenom }}</td>
+              <td class="text-muted">{{ e.dateDebut }}</td>
+              <td class="text-muted">{{ e.dateFinPrevue }}</td>
+              <td class="text-muted">{{ e.dateRetourEffective || '—' }}</td>
+              <td>
+                <span class="badge rounded-pill" [ngClass]="getStatutBadge(e)">
+                  {{ getStatutLabel(e) }}
+                </span>
+              </td>
+              <td>
+                <span *ngIf="e.montantAmende > 0" class="text-danger fw-semibold">
+                  {{ e.montantAmende | number:'1.2-2' }} €
+                </span>
+                <span *ngIf="e.montantAmende === 0" class="text-muted">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

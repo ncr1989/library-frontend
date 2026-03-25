@@ -1,0 +1,76 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow-sm" style="width: 420px;">
+
+    <!-- Header -->
+    <div class="card-header bg-primary text-white text-center py-4">
+      <i class="bi bi-book fs-1"></i>
+      <h4 class="mb-0 mt-2">Bibliothèque</h4>
+      <small>Connectez-vous à votre compte</small>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body p-4">
+
+      <!-- Error alert -->
+      <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit()">
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label fw-semibold">
+            <i class="bi bi-envelope me-1"></i>Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            placeholder="exemple@mail.com"
+            [(ngModel)]="email"
+            name="email"
+            required
+            autofocus
+          />
+        </div>
+
+        <!-- Password -->
+        <div class="mb-4">
+          <label for="password" class="form-label fw-semibold">
+            <i class="bi bi-lock me-1"></i>Mot de passe
+          </label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            placeholder="••••••••"
+            [(ngModel)]="password"
+            name="password"
+            required
+          />
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="btn btn-primary w-100"
+          [disabled]="loading"
+        >
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <span *ngIf="!loading"><i class="bi bi-box-arrow-in-right me-2"></i></span>
+          {{ loading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer text-center text-muted py-3">
+      <small>Système de gestion de bibliothèque</small>
+    </div>
+
+  </div>
+</div>
