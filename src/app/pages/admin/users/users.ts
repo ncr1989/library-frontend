@@ -10,7 +10,7 @@ import { ChangeDetectorRef } from '@angular/core';
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule,Navbar],
+  imports: [CommonModule, FormsModule, RouterModule, Navbar],
   templateUrl: './users.html',
   styleUrl: './users.css'
 })
@@ -20,6 +20,7 @@ export class Users implements OnInit {
 
   utilisateurs: any[] = [];
   filtered: any[] = [];
+  adresses: any[] = [];
   loading = false;
   errorMessage = '';
   successMessage = '';
@@ -30,59 +31,52 @@ export class Users implements OnInit {
   showModal = false;
   isEditing = false;
 
-  form = {
+  form: any = {
     id: null,
     nom: '',
     prenom: '',
     email: '',
     password: '',
     telephone: '',
-    role: 'ETUDIANT'
+    caution: 0,
+    role: 'ETUDIANT',
+    adresse: {
+      numero: '',
+      rue: '',
+      ville: '',
+      codePostal: ''
+    }
   };
 
   constructor(private http: HttpClient, private authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadUsers();
+    this.loadAdresses();
   }
 
-  // loadUsers() {
-  //   this.loading = true;
-  //   this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
-  //     next: (data) => {
-  //       this.utilisateurs = data;
-  //       this.applyFilter();
-  //       this.loading = false;
-  //     },
-  //     error: () => {
-  //       this.errorMessage = 'Erreur lors du chargement des utilisateurs.';
-  //       this.loading = false;
-  //     }
-  //   });
-  // }
-
   loadUsers() {
-  this.loading = true;
+    this.loading = true;
+    this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
+      next: (data) => {
+        this.utilisateurs = data;
+        this.applyFilter();
+        this.loading = false;
+        this.cdr.detectChanges()
+      },
+      error: () => {
+        this.errorMessage = 'Erreur lors du chargement des utilisateurs.';
+        this.loading = false;
+      }
+    });
+  }
 
-  this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
-    next: (data) => {
-      console.log('API DATA:', data);
-
-      this.utilisateurs = data;
-
-      // ✅ ALWAYS initialize filtered directly
-      this.filtered = data;
-      
-
-      this.loading = false;
-      this.cdr.detectChanges();
-    },
-    error: () => {
-      this.errorMessage = 'Erreur lors du chargement des utilisateurs.';
-      this.loading = false;
-    }
-  });
-}
+  loadAdresses() {
+    this.http.get<any[]>(`${this.apiUrl}/adresses`).subscribe({
+      next: (data) => this.adresses = data,
+      error: () => {}
+    });
+  }
 
   applyFilter() {
     this.filtered = this.utilisateurs.filter(u => {
@@ -97,7 +91,22 @@ export class Users implements OnInit {
 
   openAdd() {
     this.isEditing = false;
-    this.form = { id: null, nom: '', prenom: '', email: '', password: '', telephone: '', role: 'ETUDIANT' };
+    this.form = {
+      id: null,
+      nom: '',
+      prenom: '',
+      email: '',
+      password: '',
+      telephone: '',
+      caution: 0,
+      role: 'ETUDIANT',
+      adresse: {
+        numero: '',
+        rue: '',
+        ville: '',
+        codePostal: ''
+      }
+    };
     this.showModal = true;
   }
 
@@ -110,15 +119,38 @@ export class Users implements OnInit {
       email: u.email,
       password: '',
       telephone: u.telephone,
-      role: this.getRole(u)
+      caution: u.caution || 0,
+      role: this.getRole(u),
+      adresse: u.adresse ? { ...u.adresse } : {
+        numero: '', rue: '', ville: '', codePostal: ''
+      }
     };
     this.showModal = true;
   }
 
   save() {
+    this.errorMessage = '';
+
+    // Build the payload — create adresse first if filled
+    const hasAdresse = this.form.adresse?.rue && this.form.adresse?.ville;
+
     if (this.isEditing) {
       const endpoint = this.getRoleEndpoint(this.form.role);
-      this.http.put(`${this.apiUrl}/${endpoint}/${this.form.id}`, this.form).subscribe({
+      const payload: any = {
+        nom: this.form.nom,
+        prenom: this.form.prenom,
+        email: this.form.email,
+        telephone: this.form.telephone,
+        caution: this.form.caution,
+      };
+      if (this.form.password) {
+        payload.password = this.form.password;
+      }
+      if (hasAdresse) {
+        payload.adresse = this.form.adresse;
+      }
+
+      this.http.put(`${this.apiUrl}/${endpoint}/${this.form.id}`, payload).subscribe({
         next: () => {
           this.successMessage = 'Utilisateur modifié avec succès.';
           this.showModal = false;
@@ -126,14 +158,33 @@ export class Users implements OnInit {
         },
         error: () => this.errorMessage = 'Erreur lors de la modification.'
       });
+
     } else {
-      this.http.post(`${this.apiUrl}/auth/register`, this.form).subscribe({
+      // For creation, use register endpoint then update caution/adresse
+      const registerPayload = {
+        nom: this.form.nom,
+        prenom: this.form.prenom,
+        email: this.form.email,
+        password: this.form.password,
+        telephone: this.form.telephone,
+        caution: this.form.caution,
+        role: this.form.role,
+        adresse: hasAdresse ? this.form.adresse : null
+      };
+
+      this.http.post(`${this.apiUrl}/auth/register`, registerPayload).subscribe({
         next: () => {
           this.successMessage = 'Utilisateur créé avec succès.';
           this.showModal = false;
           this.loadUsers();
         },
-        error: () => this.errorMessage = 'Erreur lors de la création.'
+        error: (err) => {
+          if (err.status === 409) {
+            this.errorMessage = 'Cet email est déjà utilisé.';
+          } else {
+            this.errorMessage = 'Erreur lors de la création.';
+          }
+        }
       });
     }
   }
@@ -183,6 +234,11 @@ export class Users implements OnInit {
 
   getInitials(u: any): string {
     return `${u.nom?.[0] || ''}${u.prenom?.[0] || ''}`.toUpperCase();
+  }
+
+  getAdresseLabel(u: any): string {
+    if (!u.adresse) return '—';
+    return `${u.adresse.numero} ${u.adresse.rue}, ${u.adresse.ville}`;
   }
 
   logout() { this.authService.logout(); }

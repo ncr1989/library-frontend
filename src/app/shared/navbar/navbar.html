@@ -1,59 +1,63 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
   <div class="container-fluid px-4">
 
-    <!-- Brand -->
     <a class="navbar-brand fw-bold" routerLink="/dashboard">
       📚 Bibliothèque
     </a>
 
-    <!-- Nav links -->
     <div class="collapse navbar-collapse">
       <ul class="navbar-nav me-auto">
 
         <li class="nav-item">
-          <a class="nav-link"
-             routerLink="/dashboard"
-             routerLinkActive="active">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
             Dashboard
           </a>
         </li>
 
+        <!-- Admin only -->
         <li class="nav-item" *ngIf="isAdmin">
-          <a class="nav-link"
-             routerLink="/admin/users"
-             routerLinkActive="active">
+          <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
             Utilisateurs
           </a>
         </li>
-
-        <li class="nav-item">
-          <a class="nav-link"
-             routerLink="/admin/ouvrages"
-             routerLinkActive="active">
+        <li class="nav-item" *ngIf="isAdmin">
+          <a class="nav-link" routerLink="/admin/ouvrages" routerLinkActive="active">
             Ouvrages
           </a>
         </li>
-
-        <li class="nav-item">
-          <a class="nav-link"
-             routerLink="/admin/emprunts"
-             routerLinkActive="active">
+        <li class="nav-item" *ngIf="isAdmin">
+          <a class="nav-link" routerLink="/admin/emprunts" routerLinkActive="active">
             Emprunts
           </a>
         </li>
 
+        <!-- User only -->
+        <li class="nav-item" *ngIf="!isAdmin">
+          <a class="nav-link" routerLink="/user/recherche" routerLinkActive="active">
+            Rechercher un ouvrage
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="!isAdmin">
+          <a class="nav-link" routerLink="/user/mes-emprunts" routerLinkActive="active">
+            Mes emprunts
+          </a>
+        </li>
+          
       </ul>
     </div>
 
-    <!-- User info + logout -->
     <div class="d-flex align-items-center gap-3">
       <span class="text-white">👤 {{ nom }}</span>
       <span class="badge rounded-pill" [ngClass]="roleBadgeClass">
         {{ roleLabel }}
       </span>
+      <a routerLink="/profil" class="btn btn-outline-light btn-sm">
+  <i class="bi bi-person-circle me-1"></i>Mon profil
+</a>
       <button class="btn btn-outline-light btn-sm" (click)="logout()">
         Déconnexion
       </button>
+
     </div>
 
   </div>

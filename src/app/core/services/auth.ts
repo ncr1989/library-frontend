@@ -19,6 +19,7 @@ export class AuthService {
         localStorage.setItem('nom', response.nom);
         localStorage.setItem('prenom', response.prenom);
         localStorage.setItem('userId', response.id);
+        localStorage.setItem('caution',response.caution)
       }));
   } 
 
@@ -60,4 +61,7 @@ export class AuthService {
   getUserId(): string {
     return localStorage.getItem('userId') || '';
   }
+  getCaution(): number {
+  return parseFloat(localStorage.getItem('caution') || '0');
+}
 }

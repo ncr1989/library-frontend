@@ -47,36 +47,46 @@ export class Dashboard implements OnInit {
   }
 
   loadStats() {
-    this.loading = true;
+  this.loading = true;
 
-    // Load livres count
-    this.http.get<any[]>(`${this.apiUrl}/livres`).subscribe({
-      next: (data) => this.stats.livres = data.length,
-      error: () => this.stats.livres = 0
-    });
+  this.http.get<any[]>(`${this.apiUrl}/livres`).subscribe({
+    next: (data) => this.stats.livres = data.length,
+    error: () => this.stats.livres = 0
+  });
 
-    // Load emprunts
+  if (this.isAdmin) {
+    // Admin sees everything
     this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
       next: (data) => {
         this.stats.emprunts = data.length;
         this.stats.retards = data.filter(e => e.enRetard).length;
-        this.recentEmprunts = data.slice(0, 5); // last 5
+        this.recentEmprunts = data.slice(0, 5);
         this.loading = false;
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.loading = false;
-      }
+      error: () => { this.loading = false; }
     });
 
-    // Load utilisateurs (admin only)
-    if (this.isAdmin) {
-      this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
-        next: (data) => this.stats.utilisateurs = data.length,
-        error: () => this.stats.utilisateurs = 0
-      });
-    }
+    this.http.get<any[]>(`${this.apiUrl}/utilisateurs`).subscribe({
+      next: (data) => this.stats.utilisateurs = data.length,
+      error: () => this.stats.utilisateurs = 0
+    });
+
+  } else {
+    // User sees only their own emprunts
+    const userId = this.authService.getUserId();
+    this.http.get<any[]>(`${this.apiUrl}/emprunts/utilisateur/${userId}`).subscribe({
+      next: (data) => {
+        this.stats.emprunts = data.filter(e => !e.dateRetourEffective).length;
+        this.stats.retards = data.filter(e => e.enRetard).length;
+        this.recentEmprunts = data.slice(0, 5);
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.loading = false; }
+    });
   }
+}
 
 //   loadStats() {
 //   this.loading = false;
