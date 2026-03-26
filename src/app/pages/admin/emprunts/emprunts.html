@@ -4,8 +4,33 @@
 
   <div class="container-fluid px-4 py-4">
 
+    
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible">
+      <i class="bi bi-check-circle me-2"></i>{{ successMessage }}
+      <button class="btn-close" (click)="successMessage=''"></button>
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMessage }}
+      <button class="btn-close" (click)="errorMessage=''"></button>
+    </div>
+
+    
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="fw-bold mb-0">Tous les emprunts</h4>
+      <div>
+        <h4 class="fw-bold mb-0">Gestion des emprunts</h4>
+        <p class="text-muted small mb-0">
+          <span class="me-3">
+            <i class="bi bi-arrow-left-right me-1 text-primary"></i>
+            {{ enCoursCount }} en cours
+          </span>
+          <span *ngIf="retardsCount > 0" class="text-danger">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            {{ retardsCount }} en retard
+          </span>
+        </p>
+      </div>
+
+      
       <select class="form-select" style="max-width:180px;"
         [(ngModel)]="selectedStatut" (ngModelChange)="applyFilter()">
         <option value="">Tous les statuts</option>
@@ -14,7 +39,8 @@
         <option value="RETOURNE">Retourné</option>
       </select>
     </div>
-<pre></pre>
+
+   
     <div class="card border-0 shadow-sm">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -22,25 +48,37 @@
             <tr>
               <th>ID</th>
               <th>Utilisateur</th>
+              <th>Ouvrage</th>
               <th>Date début</th>
               <th>Date fin prévue</th>
               <th>Retour effectif</th>
               <th>Statut</th>
               <th>Amende</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
+
             <tr *ngIf="loading">
-              <td colspan="7" class="text-center py-4">
+              <td colspan="9" class="text-center py-4">
                 <div class="spinner-border text-primary"></div>
               </td>
             </tr>
+
             <tr *ngIf="!loading && filtered.length === 0">
-              <td colspan="7" class="text-center py-4 text-muted">Aucun emprunt trouvé.</td>
+              <td colspan="9" class="text-center py-4 text-muted">
+                Aucun emprunt trouvé.
+              </td>
             </tr>
-            <tr *ngFor="let e of filtered">
+
+            <tr *ngFor="let e of filtered"
+                [ngClass]="e.enRetard ? 'table-danger' : ''">
               <td class="text-muted">#{{ e.id }}</td>
-              <td>{{ e.utilisateur?.nom }} {{ e.utilisateur?.prenom }}</td>
+              <td>
+                <i class="bi bi-person me-1 text-muted"></i>
+                {{ e.utilisateur?.nom }} {{ e.utilisateur?.prenom }}
+              </td>
+              <td class="fw-semibold">{{ getTitre(e) }}</td>
               <td class="text-muted">{{ e.dateDebut }}</td>
               <td class="text-muted">{{ e.dateFinPrevue }}</td>
               <td class="text-muted">{{ e.dateRetourEffective || '—' }}</td>
@@ -53,12 +91,113 @@
                 <span *ngIf="e.montantAmende > 0" class="text-danger fw-semibold">
                   {{ e.montantAmende | number:'1.2-2' }} €
                 </span>
-                <span *ngIf="e.montantAmende === 0" class="text-muted">—</span>
+                <span *ngIf="!e.montantAmende || e.montantAmende === 0"
+                      class="text-muted">—</span>
+              </td>
+              <td>
+                
+                <button *ngIf="!e.dateRetourEffective"
+                        class="btn btn-sm"
+                        [ngClass]="e.enRetard ? 'btn-danger' : 'btn-outline-primary'"
+                        (click)="openRetour(e)">
+                  <i class="bi bi-arrow-return-left me-1"></i>
+                  Retour
+                </button>
+                <span *ngIf="e.dateRetourEffective"
+                      class="text-muted small">
+                  <i class="bi bi-check-circle me-1 text-success"></i>Rendu
+                </span>
               </td>
             </tr>
+
           </tbody>
         </table>
       </div>
     </div>
+
   </div>
+
+  
+  <div *ngIf="showRetourModal && selectedEmprunt"
+       class="modal d-block"
+       style="background:rgba(0,0,0,0.5);"
+       (click)="closeRetourModal()">
+    <div class="modal-dialog modal-dialog-centered"
+         (click)="$event.stopPropagation()">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-arrow-return-left me-2"></i>Enregistrer le retour
+          </h5>
+          <button class="btn-close" (click)="closeRetourModal()"></button>
+        </div>
+
+        <div class="modal-body">
+
+          
+          <div class="card bg-light border-0 p-3 mb-3">
+            <div class="row g-2 small">
+              <div class="col-6">
+                <div class="text-muted">Utilisateur</div>
+                <div class="fw-semibold">
+                  {{ selectedEmprunt.utilisateur?.nom }}
+                  {{ selectedEmprunt.utilisateur?.prenom }}
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-muted">Ouvrage</div>
+                <div class="fw-semibold">{{ getTitre(selectedEmprunt) }}</div>
+              </div>
+              <div class="col-6">
+                <div class="text-muted">Date début</div>
+                <div>{{ selectedEmprunt.dateDebut }}</div>
+              </div>
+              <div class="col-6">
+                <div class="text-muted">Date fin prévue</div>
+                <div>{{ selectedEmprunt.dateFinPrevue }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Late warning -->
+          <div *ngIf="selectedEmprunt.enRetard" class="alert alert-danger mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Emprunt en retard.</strong>
+            Une amende de <strong>{{ selectedEmprunt.montantAmende | number:'1.2-2' }} €</strong>
+            sera déduite de la caution de l'utilisateur.
+          </div>
+
+          <div *ngIf="isLate(selectedEmprunt) && !selectedEmprunt.enRetard"
+               class="alert alert-warning mb-3">
+            <i class="bi bi-clock me-2"></i>
+            Cet emprunt a dépassé la date de retour prévue.
+            Une amende sera calculée et déduite de la caution.
+          </div>
+
+          <p class="mb-0">
+            Confirmer le retour de
+            <strong>"{{ getTitre(selectedEmprunt) }}"</strong>
+            aujourd'hui ?
+          </p>
+
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeRetourModal()">
+            Annuler
+          </button>
+          <button class="btn btn-primary"
+                  (click)="confirmerRetour()"
+                  [disabled]="retourLoading">
+            <span *ngIf="retourLoading"
+                  class="spinner-border spinner-border-sm me-2"></span>
+            Confirmer le retour
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>

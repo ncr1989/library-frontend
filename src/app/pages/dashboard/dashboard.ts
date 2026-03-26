@@ -55,7 +55,6 @@ export class Dashboard implements OnInit {
   });
 
   if (this.isAdmin) {
-    // Admin sees everything
     this.http.get<any[]>(`${this.apiUrl}/emprunts`).subscribe({
       next: (data) => {
         this.stats.emprunts = data.length;
@@ -73,7 +72,7 @@ export class Dashboard implements OnInit {
     });
 
   } else {
-    // User sees only their own emprunts
+
     const userId = this.authService.getUserId();
     this.http.get<any[]>(`${this.apiUrl}/emprunts/utilisateur/${userId}`).subscribe({
       next: (data) => {
@@ -87,47 +86,6 @@ export class Dashboard implements OnInit {
     });
   }
 }
-
-//   loadStats() {
-//   this.loading = false;
-
-//   this.stats = {
-//     livres: 42,
-//     emprunts: 15,
-//     utilisateurs: 8,
-//     retards: 3
-//   };
-
-//   this.recentEmprunts = [
-//     {
-//       id: 1,
-//       utilisateur: { nom: 'Dupont', prenom: 'Jean' },
-//       dateDebut: '2024-01-01',
-//       dateFinPrevue: '2024-01-15',
-//       enRetard: false,
-//       dateRetourEffective: '2024-01-14',
-//       montantAmende: 0
-//     },
-//     {
-//       id: 2,
-//       utilisateur: { nom: 'Martin', prenom: 'Alice' },
-//       dateDebut: '2024-01-05',
-//       dateFinPrevue: '2024-01-10',
-//       enRetard: true,
-//       dateRetourEffective: null,
-//       montantAmende: 15.5
-//     },
-//     {
-//       id: 3,
-//       utilisateur: { nom: 'Bernard', prenom: 'Paul' },
-//       dateDebut: '2024-01-08',
-//       dateFinPrevue: '2024-01-22',
-//       enRetard: false,
-//       dateRetourEffective: null,
-//       montantAmende: 0
-//     }
-//   ];
-// }
 
   logout() {
     this.authService.logout();

@@ -131,7 +131,6 @@ export class Users implements OnInit {
   save() {
     this.errorMessage = '';
 
-    // Build the payload — create adresse first if filled
     const hasAdresse = this.form.adresse?.rue && this.form.adresse?.ville;
 
     if (this.isEditing) {
@@ -160,7 +159,7 @@ export class Users implements OnInit {
       });
 
     } else {
-      // For creation, use register endpoint then update caution/adresse
+
       const registerPayload = {
         nom: this.form.nom,
         prenom: this.form.prenom,
@@ -197,7 +196,15 @@ export class Users implements OnInit {
         this.successMessage = 'Utilisateur supprimé.';
         this.loadUsers();
       },
-      error: () => this.errorMessage = 'Erreur lors de la suppression.'
+     error: (err) => {
+      if (err.status === 409) {
+        this.errorMessage = err.error?.message || 'Suppression impossible.';
+    } else {
+        this.errorMessage = 'Erreur lors de la suppression.';
+    }
+    this.cdr.detectChanges();
+      
+}
     });
   }
 

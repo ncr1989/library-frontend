@@ -4,18 +4,25 @@
 
   <div class="container-fluid px-4 py-4">
 
+    
     <div *ngIf="successMessage" class="alert alert-success alert-dismissible">
-      {{ successMessage }}<button class="btn-close" (click)="successMessage=''"></button>
+      <i class="bi bi-check-circle me-2"></i>{{ successMessage }}
+      <button class="btn-close" (click)="successMessage=''"></button>
     </div>
     <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible">
-      {{ errorMessage }}<button class="btn-close" (click)="errorMessage=''"></button>
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ errorMessage }}
+      <button class="btn-close" (click)="errorMessage=''"></button>
     </div>
 
+   
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4 class="fw-bold mb-0">Gestion des ouvrages</h4>
-      <button class="btn btn-primary" (click)="openAdd()">+ Ajouter un ouvrage</button>
+      <button class="btn btn-primary" (click)="openAdd()">
+        <i class="bi bi-plus-lg me-1"></i>Ajouter un ouvrage
+      </button>
     </div>
 
+    
     <div class="d-flex gap-2 mb-3">
       <input type="text" class="form-control" style="max-width:300px;"
         placeholder="Rechercher par titre..."
@@ -27,52 +34,229 @@
         <option value="REVUE">Revue</option>
       </select>
     </div>
-<pre></pre>
-    <div class="card border-0 shadow-sm">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Titre</th>
-              <th>Type</th>
-              <th>Année</th>
-              <th>Caution</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="loading">
-              <td colspan="5" class="text-center py-4">
-                <div class="spinner-border text-primary"></div>
-              </td>
-            </tr>
-            <tr *ngIf="!loading && filtered.length === 0">
-              <td colspan="5" class="text-center py-4 text-muted">Aucun ouvrage trouvé.</td>
-            </tr>
-            <tr *ngFor="let o of filtered">
-              <td class="fw-semibold">{{ o.titre }}</td>
-              <td><span class="badge rounded-pill" [ngClass]="getTypeBadge(o)">{{ getTypeLabel(o) }}</span></td>
-              <td class="text-muted">{{ o.anneePublication | date:'yyyy' }}</td>
-              <td class="text-muted">{{ o.caution | number:'1.2-2' }} €</td>
-              <td>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-sm btn-outline-primary" (click)="openEdit(o)">Modifier</button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="delete(o)">Supprimer</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+    
+    <div class="d-flex gap-3">
+
+     
+      <div class="card border-0 shadow-sm flex-grow-1" style="min-width:0;">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>Année</th>
+                <th>Caution</th>
+                <th>Exemplaires</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="loading">
+                <td colspan="6" class="text-center py-4">
+                  <div class="spinner-border text-primary"></div>
+                </td>
+              </tr>
+              <tr *ngIf="!loading && filtered.length === 0">
+                <td colspan="6" class="text-center py-4 text-muted">Aucun ouvrage trouvé.</td>
+              </tr>
+              <tr *ngFor="let o of filtered"
+                  [ngClass]="selectedOuvrage?.id === o.id ? 'table-primary' : ''">
+                <td class="fw-semibold">{{ o.titre }}</td>
+                <td>
+                  <span class="badge rounded-pill" [ngClass]="getTypeBadge(o)">
+                    {{ getTypeLabel(o) }}
+                  </span>
+                </td>
+                <td class="text-muted">{{ o.anneePublication | date:'yyyy' }}</td>
+                <td class="text-muted">{{ o.caution | number:'1.2-2' }} €</td>
+                <td>
+                  
+                  <span class="badge me-1"
+                        [ngClass]="getDisponibles(o) > 0 ? 'bg-success' : 'bg-secondary'">
+                    {{ getDisponibles(o) }}/{{ getTotalExemplaires(o) }} dispo
+                  </span>
+                </td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-primary"
+                            (click)="openEdit(o)">
+                      Modifier
+                    </button>
+                    <button class="btn btn-sm btn-outline-success"
+                            (click)="openExemplaires(o)"
+                            [ngClass]="selectedOuvrage?.id === o.id ? 'btn-success text-white' : 'btn-outline-success'">
+                      <i class="bi bi-collection me-1"></i>Exemplaires
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            (click)="delete(o)">
+                      Supprimer
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      
+      <div *ngIf="showExemplairesPanel && selectedOuvrage"
+           class="card border-0 shadow-sm"
+           style="width: 420px; min-width: 420px;">
+
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+          <div>
+            <h6 class="fw-bold mb-0">
+              <i class="bi bi-collection me-2 text-success"></i>Exemplaires
+            </h6>
+            <small class="text-muted">{{ selectedOuvrage.titre }}</small>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary" (click)="closeExemplaires()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="card-body p-3">
+
+          
+          <button *ngIf="!showAddExemplaireForm"
+                  class="btn btn-success btn-sm w-100 mb-3"
+                  (click)="showAddExemplaireForm = true">
+            <i class="bi bi-plus-lg me-1"></i>Ajouter un exemplaire
+          </button>
+
+          
+          <div *ngIf="showAddExemplaireForm"
+               class="card border bg-light mb-3">
+            <div class="card-body p-3">
+              <h6 class="fw-semibold mb-3">Nouvel exemplaire</h6>
+
+              <div class="mb-2">
+                <label class="form-label small">Code barre *</label>
+                <input type="number" class="form-control form-control-sm"
+                       [(ngModel)]="exemplaireForm.codeBarre"
+                       placeholder="ex: 100007" />
+              </div>
+
+              <hr class="my-2">
+              <div class="text-muted small mb-2">Emplacement</div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label small">Niveau *</label>
+                  <input type="number" class="form-control form-control-sm"
+                         [(ngModel)]="exemplaireForm.niveau"
+                         placeholder="ex: 1" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label small">Numéro travée *</label>
+                  <input type="number" class="form-control form-control-sm"
+                         [(ngModel)]="exemplaireForm.numeroTravee"
+                         placeholder="ex: 3" />
+                </div>
+              </div>
+
+              <div class="mb-3">
+  <label class="form-label small">Catégorie *</label>
+  <div class="d-flex gap-2">
+    <select class="form-select form-select-sm"
+            [(ngModel)]="exemplaireForm.categorieId">
+      <option [ngValue]="null">Choisir une catégorie</option>
+      <option *ngFor="let c of categories" [ngValue]="c.id">
+        {{ c.nom }}
+      </option>
+    </select>
+    <button class="btn btn-sm btn-outline-primary text-nowrap"
+            type="button"
+            (click)="showNewCategorie = !showNewCategorie">
+      + Nouvelle
+    </button>
+  </div>
+
+
+  <div *ngIf="showNewCategorie" class="mt-2 d-flex gap-2">
+    <input type="text" class="form-control form-control-sm"
+           placeholder="Nom de la catégorie..."
+           [(ngModel)]="newCategorieNom" />
+    <button class="btn btn-sm btn-success text-nowrap"
+            (click)="createAndSelectCategorie()">
+      Créer
+    </button>
+    <button class="btn btn-sm btn-secondary"
+            (click)="showNewCategorie = false">
+      ✕
+    </button>
+  </div>
+</div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-success btn-sm flex-grow-1"
+                        (click)="addExemplaire()"
+                        [disabled]="exemplaireLoading">
+                  <span *ngIf="exemplaireLoading"
+                        class="spinner-border spinner-border-sm me-1"></span>
+                  Confirmer
+                </button>
+                <button class="btn btn-secondary btn-sm"
+                        (click)="showAddExemplaireForm = false">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+
+          
+          <div *ngIf="getTotalExemplaires(selectedOuvrage) === 0"
+               class="text-center text-muted py-3">
+            <i class="bi bi-inbox fs-3"></i>
+            <p class="small mt-2 mb-0">Aucun exemplaire.</p>
+            <p class="small text-warning">Cet ouvrage ne peut pas être emprunté.</p>
+          </div>
+
+          <div *ngFor="let ex of selectedOuvrage.exemplaires"
+               class="d-flex justify-content-between align-items-center
+                      border rounded p-2 mb-2">
+            <div>
+              <div class="fw-semibold small">
+                <i class="bi bi-upc me-1 text-muted"></i>#{{ ex.codeBarre }}
+              </div>
+              <div class="text-muted" style="font-size:11px;">
+                {{ getEmplacementLabel(ex) }} — {{ getCategorieNom(ex) }}
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge"
+                    [ngClass]="ex.disponible ? 'bg-success' : 'bg-danger'">
+                {{ ex.disponible ? 'Disponible' : 'Emprunté' }}
+              </span>
+              <button class="btn btn-sm btn-outline-danger"
+                      [disabled]="!ex.disponible"
+                      [title]="!ex.disponible ? 'Impossible : exemplaire emprunté' : 'Supprimer'"
+                      (click)="deleteExemplaire(ex)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Modal -->
-  <div *ngIf="showModal" class="modal d-block" style="background:rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered">
+  
+  <div *ngIf="showModal" class="modal d-block"
+       style="background:rgba(0,0,0,0.5);"
+       (click)="showModal=false">
+    <div class="modal-dialog modal-dialog-centered"
+         (click)="$event.stopPropagation()">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ isEditing ? 'Modifier' : 'Ajouter' }} un ouvrage</h5>
+          <h5 class="modal-title">
+            {{ isEditing ? 'Modifier' : 'Ajouter' }} un ouvrage
+          </h5>
           <button class="btn-close" (click)="showModal=false"></button>
         </div>
         <div class="modal-body">
@@ -90,29 +274,35 @@
             </div>
             <div class="col-6">
               <label class="form-label">Caution (€)</label>
-              <input class="form-control" type="number" [(ngModel)]="form.caution" />
+              <input class="form-control" type="number" step="0.01"
+                     [(ngModel)]="form.caution" />
             </div>
             <div class="col-6">
               <label class="form-label">Année de publication</label>
-              <input class="form-control" type="date" [(ngModel)]="form.anneePublication" />
-            </div>
-            <div class="col-6">
-              <label class="form-label">Theme</label>
-              <input class="form-control" [(ngModel)]="form.theme" />
+              <input class="form-control" type="date"
+                     [(ngModel)]="form.anneePublication" />
             </div>
             <div class="col-6" *ngIf="form.type === 'LIVRE'">
               <label class="form-label">ISBN</label>
               <input class="form-control" [(ngModel)]="form.isbn" />
             </div>
-            
             <div class="col-6" *ngIf="form.type === 'REVUE'">
               <label class="form-label">Numéro de volume</label>
-              <input class="form-control" type="number" [(ngModel)]="form.numeroVolume" />
+              <input class="form-control" type="number"
+                     [(ngModel)]="form.numeroVolume" />
             </div>
             <div class="col-6" *ngIf="form.type === 'REVUE'">
               <label class="form-label">Date de parution</label>
-              <input class="form-control" type="date" [(ngModel)]="form.dateDeParution" />
+              <input class="form-control" type="date"
+                     [(ngModel)]="form.dateDeParution" />
             </div>
+          </div>
+
+          
+          <div *ngIf="!isEditing" class="alert alert-info mt-3 mb-0 small">
+            <i class="bi bi-info-circle me-2"></i>
+            Après création, utilisez le bouton <strong>Exemplaires</strong> pour
+            ajouter des exemplaires et rendre l'ouvrage empruntable.
           </div>
         </div>
         <div class="modal-footer">

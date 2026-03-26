@@ -22,8 +22,8 @@ export class Recherche implements OnInit {
   searchTitre = '';
   searchAuteur = '';
   searchAnnee = '';
-  searchTheme = '';           // selected theme value
-  availableThemes: string[] = []; // all unique themes from API
+  searchTheme = '';           
+  availableThemes: string[] = []; 
 
   ouvrages: any[] = [];
   filteredOuvrages: any[] = [];
@@ -31,7 +31,7 @@ export class Recherche implements OnInit {
 
   userCaution = 0;
 
-  // Emprunt modal
+  
   showEmpruntModal = false;
   selectedOuvrage: any = null;
   selectedExemplaire: any = null;
@@ -66,7 +66,7 @@ export class Recherche implements OnInit {
       next: (data) => {
         this.ouvrages = data;
         this.filteredOuvrages = data;
-        // Extract all unique themes for the select
+        
         const themes = new Set<string>();
         data.forEach(o => {
           o.themes?.forEach((t: any) => {
@@ -163,6 +163,7 @@ export class Recherche implements OnInit {
     this.successMessage = '';
     this.errorMessage = '';
     this.cautionError = '';
+    this.cdr.detectChanges();
   }
 
   confirmerEmprunt() {
@@ -191,9 +192,8 @@ export class Recherche implements OnInit {
         this.empruntLoading = false;
         this.empruntSuccess = true;
         this.successMessage = `"${this.selectedOuvrage.titre}" emprunté avec succès !`;
-        // Mark exemplaire unavailable locally
         this.selectedExemplaire.disponible = false;
-        // Auto close after 1.5s
+        this.cdr.detectChanges();
         setTimeout(() => this.closeModal(), 1500);
       },
       error: (err) => {

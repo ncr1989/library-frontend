@@ -53,7 +53,7 @@ export class MesEmprunts implements OnInit {
     });
   }
 
-  // Bug fix: safely navigate the exemplaire -> ouvrage -> titre chain
+  
   getTitre(e: any): string {
     if (e?.exemplaire?.ouvrage?.titre) return e.exemplaire.ouvrage.titre;
     if (e?.exemplaire?.titre) return e.exemplaire.titre;

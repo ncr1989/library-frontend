@@ -14,7 +14,7 @@
           </a>
         </li>
 
-        <!-- Admin only -->
+        
         <li class="nav-item" *ngIf="isAdmin">
           <a class="nav-link" routerLink="/admin/users" routerLinkActive="active">
             Utilisateurs
@@ -31,7 +31,7 @@
           </a>
         </li>
 
-        <!-- User only -->
+        
         <li class="nav-item" *ngIf="!isAdmin">
           <a class="nav-link" routerLink="/user/recherche" routerLinkActive="active">
             Rechercher un ouvrage

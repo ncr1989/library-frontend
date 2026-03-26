@@ -1,17 +1,38 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn } from '@angular/router';
-
+import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { authGuard } from './auth-guard';
+import { AuthService } from '../services/auth';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
 describe('authGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) =>
-    TestBed.runInInjectionContext(() => authGuard(...guardParameters));
+  let authService: jasmine.SpyObj<AuthService>;
+  let router: Router;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    authService = jasmine.createSpyObj('AuthService', ['isLoggedIn']);
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      providers: [{ provide: AuthService, useValue: authService }]
+    });
+    router = TestBed.inject(Router);
   });
 
-  it('should be created', () => {
-    expect(executeGuard).toBeTruthy();
+  it('devrait autoriser l\'accès quand l\'utilisateur est connecté', () => {
+    authService.isLoggedIn.and.returnValue(true);
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)
+    );
+    expect(result).toBe(true);
+  });
+
+  it('devrait refuser l\'accès et rediriger vers /login quand non connecté', () => {
+    authService.isLoggedIn.and.returnValue(false);
+    const navigateSpy = spyOn(router, 'navigate');
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)
+    );
+    expect(result).toBe(false);
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });

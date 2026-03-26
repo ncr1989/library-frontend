@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth';
 import { Navbar } from '../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-profil',
@@ -16,7 +17,7 @@ import { Navbar } from '../../shared/navbar/navbar';
 export class Profil implements OnInit {
 
   user: any = null;
-  loading = false;
+  loading = true;  
   editing = false;
   successMessage = '';
   errorMessage = '';
@@ -29,7 +30,7 @@ export class Profil implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, public authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadUser();
@@ -38,15 +39,36 @@ export class Profil implements OnInit {
   loadUser() {
     this.loading = true;
     const userId = this.authService.getUserId();
-    this.http.get<any>(`${this.apiUrl}/utilisateurs/${userId}`).subscribe({
+    this.cdr.detectChanges();
+
+    if (!userId) {
+      this.loading = false;
+      this.errorMessage = 'Impossible de charger le profil. Veuillez vous reconnecter.';
+      return;
+    }
+
+    
+    const endpoint = this.getEndpoint();
+    this.http.get<any>(`${this.apiUrl}/${endpoint}/${userId}`).subscribe({
       next: (data) => {
         this.user = data;
-        this.form.nom = data.nom;
-        this.form.prenom = data.prenom;
+        this.form.nom = data.nom || '';
+        this.form.prenom = data.prenom || '';
         this.form.telephone = data.telephone || '';
         this.loading = false;
       },
-      error: () => this.loading = false
+      error: () => {
+        
+        this.loading = false;
+        this.user = {
+          nom: this.authService.getNom(),
+          prenom: '',
+          email: '',
+          telephone: '',
+          caution: this.authService.getCaution()
+        };
+        this.form.nom = this.user.nom;
+      }
     });
   }
 
@@ -72,7 +94,7 @@ export class Profil implements OnInit {
   }
 
   get cautionPercent(): number {
-    const max = 20; // reference max for progress bar
+    const max = 20;
     return Math.min(100, ((this.user?.caution || 0) / max) * 100);
   }
 

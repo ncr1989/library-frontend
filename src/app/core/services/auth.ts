@@ -23,20 +23,6 @@ export class AuthService {
       }));
   } 
 
-
-//   login(email: string, password: string) {
-//   // fake login — always succeeds
-//   localStorage.setItem('token', 'fake_token');
-//   localStorage.setItem('role', 'ADMIN');
-//   localStorage.setItem('nom', 'Admin');
-//   localStorage.setItem('prenom', 'Super');
-//   localStorage.setItem('userId', "1");
-//   return new Observable(observer => {
-//     observer.next({});
-//     observer.complete();
-//   });
-// }
-
   logout() {
     localStorage.clear();
     this.router.navigate(['/login']);
