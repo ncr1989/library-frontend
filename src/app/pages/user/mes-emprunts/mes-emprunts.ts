@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth';
 import { Navbar } from '../../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-mes-emprunts',
@@ -21,7 +22,7 @@ export class MesEmprunts implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadCurrentUser();
@@ -43,6 +44,7 @@ export class MesEmprunts implements OnInit {
       next: (data) => {
         this.emprunts = data;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage = 'Erreur lors du chargement de vos emprunts.';

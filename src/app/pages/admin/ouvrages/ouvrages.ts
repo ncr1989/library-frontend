@@ -38,6 +38,7 @@ export class Ouvrages implements OnInit {
     anneePublication: '',
     type: 'LIVRE',
     isbn: '',
+    theme: '',
     numeroVolume: '',
     dateDeParution: ''
   };
@@ -54,8 +55,6 @@ export class Ouvrages implements OnInit {
       console.log('OUVRAGES:', data);
 
       this.ouvrages = data;
-
-      // 🔥 IMPORTANT: initialize filtered directly
       this.filtered = data;
 
       this.loading = false;
@@ -101,7 +100,7 @@ export class Ouvrages implements OnInit {
 
   openAdd() {
     this.isEditing = false;
-    this.form = { id: null, titre: '', caution: 0, anneePublication: '', type: 'LIVRE', isbn: '', numeroVolume: '', dateDeParution: '' };
+    this.form = { id: null, titre: '', caution: 0, anneePublication: '', type: 'LIVRE', isbn: '',theme:'', numeroVolume: '', dateDeParution: '' };
     this.showModal = true;
   }
 

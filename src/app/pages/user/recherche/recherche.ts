@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth';
 import { Navbar } from '../../../shared/navbar/navbar';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-recherche',
@@ -44,7 +45,7 @@ export class Recherche implements OnInit {
   errorMessage = '';
   cautionError = '';
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  constructor(private http: HttpClient, private authService: AuthService,private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadCurrentUser();
@@ -74,6 +75,8 @@ export class Recherche implements OnInit {
         });
         this.availableThemes = Array.from(themes).sort();
         this.loading = false;
+        this.cdr.detectChanges();
+        
       },
       error: () => this.loading = false
     });

@@ -96,10 +96,15 @@
               <label class="form-label">Année de publication</label>
               <input class="form-control" type="date" [(ngModel)]="form.anneePublication" />
             </div>
+            <div class="col-6">
+              <label class="form-label">Theme</label>
+              <input class="form-control" [(ngModel)]="form.theme" />
+            </div>
             <div class="col-6" *ngIf="form.type === 'LIVRE'">
               <label class="form-label">ISBN</label>
               <input class="form-control" [(ngModel)]="form.isbn" />
             </div>
+            
             <div class="col-6" *ngIf="form.type === 'REVUE'">
               <label class="form-label">Numéro de volume</label>
               <input class="form-control" type="number" [(ngModel)]="form.numeroVolume" />
