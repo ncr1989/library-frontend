@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { Emprunts } from './emprunts';
 import { AuthService } from '../../../core/services/auth';
 
@@ -10,20 +11,29 @@ const mockEmprunts = [
   { id: 3, utilisateur: { nom: 'Bernard', prenom: 'Paul' }, exemplaire: { ouvrage: { titre: 'L\'Étranger' } }, dateDebut: '2024-01-08', dateFinPrevue: '2099-01-22', dateRetourEffective: null, enRetard: false, montantAmende: 0 }
 ];
 
+const authServiceMock = {
+  isAdmin: () => true,
+  logout: () => {},
+  getNom: () => 'Admin',
+  getRole: () => 'ADMIN',
+  isLoggedIn: () => true,
+  getUserId: () => '1'
+};
+
 describe('Emprunts (admin)', () => {
   let composant: Emprunts;
   let fixture: ComponentFixture<Emprunts>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
-    const authService = jasmine.createSpyObj('AuthService', ['isAdmin', 'logout', 'getNom', 'getRole', 'isLoggedIn', 'getUserId']);
-    authService.isAdmin.and.returnValue(true);
-    authService.getNom.and.returnValue('Admin');
-    authService.getRole.and.returnValue('ADMIN');
-
     await TestBed.configureTestingModule({
-      imports: [Emprunts, HttpClientTestingModule, RouterTestingModule],
-      providers: [{ provide: AuthService, useValue: authService }]
+      imports: [Emprunts],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: AuthService, useValue: authServiceMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(Emprunts);
@@ -54,7 +64,7 @@ describe('Emprunts (admin)', () => {
     expect(composant.filtered[0].id).toBe(1);
   });
 
-  it('devrait retourner "—" quand le titre de l\'ouvrage est absent', () => {
+  it('devrait retourner "—" quand le titre est absent', () => {
     expect(composant.getTitre({ exemplaire: null })).toBe('—');
   });
 
@@ -62,17 +72,17 @@ describe('Emprunts (admin)', () => {
     expect(composant.retardsCount).toBe(1);
   });
 
-  it('devrait ouvrir la modale de retour avec l\'emprunt sélectionné', () => {
+  it('devrait ouvrir la modale avec l\'emprunt sélectionné', () => {
     composant.openRetour(mockEmprunts[1]);
     expect(composant.showRetourModal).toBe(true);
     expect(composant.selectedEmprunt).toEqual(mockEmprunts[1]);
   });
 
-  it('devrait appeler POST /retour et recharger la liste', () => {
-    composant.selectedEmprunt = mockEmprunts[1];
+  it('devrait appeler POST /retour et afficher un message de succès', () => {
+    composant.selectedEmprunt = mockEmprunts[0];
     composant.confirmerRetour();
-    const req = httpMock.expectOne('http://localhost:8080/api/emprunts/2/retour');
-    req.flush({ ...mockEmprunts[1], dateRetourEffective: '2024-01-20', montantAmende: 0 });
+    const req = httpMock.expectOne('http://localhost:8080/api/emprunts/1/retour');
+    req.flush({ ...mockEmprunts[0], dateRetourEffective: '2024-01-14', montantAmende: 0 });
     httpMock.expectOne('http://localhost:8080/api/emprunts').flush(mockEmprunts);
     expect(composant.successMessage).toContain('Retour enregistré');
   });

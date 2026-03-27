@@ -1,34 +1,45 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { Profil } from './profil';
 import { AuthService } from '../../core/services/auth';
 
-const mockUser = { id: 3, nom: 'Dupont', prenom: 'Jean', email: 'jean@mail.com', telephone: '0633333333', caution: 12.5 };
+const mockUser = {
+  id: 3, nom: 'Dupont', prenom: 'Jean',
+  email: 'jean@mail.com', telephone: '0633333333', caution: 12.5
+};
+
+const authServiceMock = {
+  getUserId: () => '3',
+  getRole: () => 'ETUDIANT',
+  getNom: () => 'Jean',
+  isAdmin: () => false,
+  isLoggedIn: () => true,
+  getCaution: () => 12.5
+};
 
 describe('Profil', () => {
   let composant: Profil;
   let fixture: ComponentFixture<Profil>;
   let httpMock: HttpTestingController;
-  let authService: jasmine.SpyObj<AuthService>;
 
   beforeEach(async () => {
-    authService = jasmine.createSpyObj('AuthService', ['getUserId', 'getRole', 'getNom', 'isAdmin', 'isLoggedIn']);
-    authService.getUserId.and.returnValue('3');
-    authService.getRole.and.returnValue('ETUDIANT');
-    authService.isAdmin.and.returnValue(false);
-
     await TestBed.configureTestingModule({
-      imports: [Profil, HttpClientTestingModule, RouterTestingModule],
-      providers: [{ provide: AuthService, useValue: authService }]
+      imports: [Profil],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: AuthService, useValue: authServiceMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(Profil);
     composant = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-    httpMock.expectOne('http://localhost:8080/api/utilisateurs/3').flush(mockUser);
-    fixture.detectChanges();
+    fixture.autoDetectChanges();
+    httpMock.expectOne('http://localhost:8080/api/etudiants/3').flush(mockUser);
   });
 
   afterEach(() => httpMock.verify());
@@ -51,7 +62,7 @@ describe('Profil', () => {
     expect(composant.cautionSuffisante).toBe(false);
   });
 
-  it('devrait calculer le pourcentage de caution correctement', () => {
+  it('devrait calculer le pourcentage de caution correctement (10€ sur 20€ max = 50%)', () => {
     composant.user = { caution: 10 };
     expect(composant.cautionPercent).toBe(50);
   });
@@ -59,7 +70,7 @@ describe('Profil', () => {
   it('devrait afficher un message de succès après la sauvegarde', () => {
     composant.saveProfile();
     httpMock.expectOne('http://localhost:8080/api/etudiants/3').flush(mockUser);
-    httpMock.expectOne('http://localhost:8080/api/utilisateurs/3').flush(mockUser);
+    httpMock.expectOne('http://localhost:8080/api/etudiants/3').flush(mockUser);
     expect(composant.successMessage).toBe('Profil mis à jour avec succès.');
   });
 });

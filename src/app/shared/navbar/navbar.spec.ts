@@ -1,22 +1,32 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { Navbar } from './navbar';
 import { AuthService } from '../../core/services/auth';
 
 describe('Navbar', () => {
   let composant: Navbar;
   let fixture: ComponentFixture<Navbar>;
-  let authService: jasmine.SpyObj<AuthService>;
+  let roleValue = 'ADMIN';
+  let logoutCalled = false;
+
+  const authServiceMock = {
+    getNom: () => 'Admin',
+    getRole: () => roleValue,
+    isAdmin: () => roleValue === 'ADMIN',
+    logout: () => { logoutCalled = true; },
+    isLoggedIn: () => true
+  };
 
   beforeEach(async () => {
-    authService = jasmine.createSpyObj('AuthService', ['getNom', 'getRole', 'isAdmin', 'logout', 'isLoggedIn']);
-    authService.getNom.and.returnValue('Admin');
-    authService.getRole.and.returnValue('ADMIN');
-    authService.isAdmin.and.returnValue(true);
+    roleValue = 'ADMIN';
+    logoutCalled = false;
 
     await TestBed.configureTestingModule({
-      imports: [Navbar, RouterTestingModule],
-      providers: [{ provide: AuthService, useValue: authService }]
+      imports: [Navbar],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: authServiceMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(Navbar);
@@ -33,8 +43,13 @@ describe('Navbar', () => {
   });
 
   it('devrait retourner "Étudiant" pour le rôle ETUDIANT', () => {
-    authService.getRole.and.returnValue('ETUDIANT');
+    roleValue = 'ETUDIANT';
     expect(composant.roleLabel).toBe('Étudiant');
+  });
+
+  it('devrait retourner "Enseignant" pour le rôle ENSEIGNANT', () => {
+    roleValue = 'ENSEIGNANT';
+    expect(composant.roleLabel).toBe('Enseignant');
   });
 
   it('devrait retourner bg-danger pour le badge administrateur', () => {
@@ -43,6 +58,6 @@ describe('Navbar', () => {
 
   it('devrait appeler authService.logout lors de la déconnexion', () => {
     composant.logout();
-    expect(authService.logout).toHaveBeenCalled();
+    expect(logoutCalled).toBe(true);
   });
 });

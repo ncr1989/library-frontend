@@ -92,7 +92,9 @@
                   <button class="btn btn-sm btn-outline-primary"
                           (click)="openEdit(u)">Modifier</button>
                   <button class="btn btn-sm btn-outline-danger"
-                          (click)="delete(u)">Supprimer</button>
+        (click)="openDelete(u)">
+  Supprimer
+</button>
                 </div>
               </td>
             </tr>
@@ -206,5 +208,48 @@
       </div>
     </div>
   </div>
+<!-- Modale de confirmation de suppression -->
+<div *ngIf="showDeleteModal && userToDelete"
+     class="modal d-block"
+     style="background:rgba(0,0,0,0.5);"
+     (click)="showDeleteModal = false">
+  <div class="modal-dialog modal-dialog-centered"
+       (click)="$event.stopPropagation()">
+    <div class="modal-content">
 
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+          Confirmer la suppression
+        </h5>
+        <button class="btn-close" (click)="showDeleteModal = false"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-1">
+          Voulez-vous vraiment supprimer l'utilisateur :
+        </p>
+        <p class="fw-bold fs-5 mb-1">
+          {{ userToDelete.nom }} {{ userToDelete.prenom }}
+        </p>
+        <p class="text-muted small mb-0">{{ userToDelete.email }}</p>
+        <div class="alert alert-warning mt-3 mb-0 small">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          Cette action est irréversible. Si l'utilisateur a des emprunts en cours,
+          la suppression sera bloquée.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showDeleteModal = false">
+          Annuler
+        </button>
+        <button class="btn btn-danger" (click)="confirmerDelete()">
+          <i class="bi bi-trash me-1"></i>Supprimer définitivement
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
 </div>

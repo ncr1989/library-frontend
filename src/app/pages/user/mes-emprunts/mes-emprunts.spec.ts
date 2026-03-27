@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { MesEmprunts } from './mes-emprunts';
 import { AuthService } from '../../../core/services/auth';
 
@@ -10,20 +11,28 @@ const mockEmprunts = [
   { id: 3, enRetard: false, dateRetourEffective: null, montantAmende: 0, exemplaire: { ouvrage: { titre: 'L\'Étranger' } } }
 ];
 
+const authServiceMock = {
+  getUserId: () => '3',
+  getNom: () => 'Jean',
+  getRole: () => 'ETUDIANT',
+  isAdmin: () => false,
+  isLoggedIn: () => true
+};
+
 describe('MesEmprunts', () => {
   let composant: MesEmprunts;
   let fixture: ComponentFixture<MesEmprunts>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
-    const authService = jasmine.createSpyObj('AuthService', ['getUserId', 'getNom', 'getRole', 'isAdmin', 'isLoggedIn']);
-    authService.getUserId.and.returnValue('3');
-    authService.getRole.and.returnValue('ETUDIANT');
-    authService.isAdmin.and.returnValue(false);
-
     await TestBed.configureTestingModule({
-      imports: [MesEmprunts, HttpClientTestingModule, RouterTestingModule],
-      providers: [{ provide: AuthService, useValue: authService }]
+      imports: [MesEmprunts],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: AuthService, useValue: authServiceMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(MesEmprunts);
@@ -58,7 +67,7 @@ describe('MesEmprunts', () => {
     expect(composant.empruntsEnRetard).toBe(1);
   });
 
-  it('devrait calculer les amendes pendantes sur les emprunts non retournés', () => {
+  it('devrait calculer les amendes pendantes correctement', () => {
     expect(composant.amendesPendantes).toBe(15.5);
   });
 });

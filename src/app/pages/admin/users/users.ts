@@ -24,6 +24,8 @@ export class Users implements OnInit {
   loading = false;
   errorMessage = '';
   successMessage = '';
+  showDeleteModal = false;
+userToDelete: any = null;
 
   searchTerm = '';
   selectedRole = '';
@@ -188,25 +190,28 @@ export class Users implements OnInit {
     }
   }
 
-  delete(u: any) {
-    if (!confirm(`Supprimer ${u.nom} ${u.prenom} ?`)) return;
-    const endpoint = this.getRoleEndpoint(this.getRole(u));
-    this.http.delete(`${this.apiUrl}/${endpoint}/${u.id}`).subscribe({
-      next: () => {
-        this.successMessage = 'Utilisateur supprimé.';
-        this.loadUsers();
-      },
-     error: (err) => {
-      if (err.status === 409) {
-        this.errorMessage = err.error?.message || 'Suppression impossible.';
-    } else {
-        this.errorMessage = 'Erreur lors de la suppression.';
-    }
-    this.cdr.detectChanges();
-      
+  openDelete(u: any) {
+  this.userToDelete = u;
+  this.showDeleteModal = true;
 }
-    });
-  }
+
+confirmerDelete() {
+  if (!this.userToDelete) return;
+  const endpoint = this.getRoleEndpoint(this.getRole(this.userToDelete));
+  this.http.delete(`${this.apiUrl}/${endpoint}/${this.userToDelete.id}`).subscribe({
+    next: () => {
+      this.successMessage = 'Utilisateur supprimé.';
+      this.showDeleteModal = false;
+      this.userToDelete = null;
+      this.loadUsers();
+    },
+    error: (err) => {
+      this.errorMessage = err.error?.message || 'Erreur lors de la suppression.';
+      this.showDeleteModal = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   getRole(u: any): string {
     if (u.numeroMatricule !== undefined) return 'BIBLIOTHECAIRE';

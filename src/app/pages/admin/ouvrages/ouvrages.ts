@@ -27,34 +27,36 @@ export class Ouvrages implements OnInit {
   searchTerm = '';
   selectedType = '';
 
-
+  auteurs: any[] = [];                // liste complète
+selectedAuteurIds: number[] = [];   // auteurs sélectionnés pour le formulaire
+newAuteurNom = '';
+newAuteurPrenom = '';
+showNewAuteur = false;
   showModal = false;
   isEditing = false;
   form: any = {
-    id: null,
-    titre: '',
-    caution: 0,
-    anneePublication: '',
-    type: 'LIVRE',
-    isbn: '',
-    numeroVolume: '',
-    dateDeParution: ''
+    id: null, titre: '', caution: 0, anneePublication: '',
+    type: 'LIVRE', isbn: '', numeroVolume: '', dateDeParution: '',
   };
 
+  
+  showDeleteModal = false;
+  ouvrageToDelete: any = null;
 
+  
   showExemplairesPanel = false;
   selectedOuvrage: any = null;
   showAddExemplaireForm = false;
   exemplaireForm: any = {
-    codeBarre: '',
-    niveau: '',
-    numeroTravee: '',
-    categorieId: null
-    
+    codeBarre: '', niveau: '', numeroTravee: '', categorieId: null
   };
-newCategorieNom = '';
-showNewCategorie = false;
+  newCategorieNom = '';
+  showNewCategorie = false;
   exemplaireLoading = false;
+
+  
+  showDeleteExemplaireModal = false;
+  exemplaireToDelete: any = null;
 
   constructor(
     private http: HttpClient,
@@ -65,7 +67,44 @@ showNewCategorie = false;
   ngOnInit() {
     this.loadOuvrages();
     this.loadCategories();
+    this.loadAuteurs();
   }
+
+  loadAuteurs() {
+  this.http.get<any[]>(`${this.apiUrl}/auteurs`).subscribe({
+    next: (data) => this.auteurs = data,
+    error: () => {}
+  });
+}
+
+isAuteurSelected(id: number): boolean {
+  return this.selectedAuteurIds.includes(id);
+}
+
+toggleAuteur(id: number) {
+  if (this.isAuteurSelected(id)) {
+    this.selectedAuteurIds = this.selectedAuteurIds.filter(a => a !== id);
+  } else {
+    this.selectedAuteurIds.push(id);
+  }
+}
+
+createAndSelectAuteur() {
+  if (!this.newAuteurNom.trim()) return;
+  this.http.post<any>(`${this.apiUrl}/auteurs`, {
+    nom: this.newAuteurNom,
+    prenom: this.newAuteurPrenom
+  }).subscribe({
+    next: (auteur) => {
+      this.auteurs.push(auteur);
+      this.selectedAuteurIds.push(auteur.id);
+      this.newAuteurNom = '';
+      this.newAuteurPrenom = '';
+      this.showNewAuteur = false;
+    },
+    error: () => this.errorMessage = 'Erreur lors de la création de l\'auteur'
+  });
+}
 
   loadOuvrages() {
     this.loading = true;
@@ -129,64 +168,89 @@ showNewCategorie = false;
     return o.exemplaires?.length || 0;
   }
 
+  
 
   openAdd() {
-    this.isEditing = false;
-    this.form = {
-      id: null, titre: '', caution: 0, anneePublication: '',
-      type: 'LIVRE', isbn: '', numeroVolume: '', dateDeParution: ''
-    };
-    this.showModal = true;
-  }
+  this.isEditing = false;
+  this.selectedAuteurIds = [];
+  this.showNewAuteur = false;
+  this.form = {
+    id: null, titre: '', caution: 0, anneePublication: '',
+    type: 'LIVRE', isbn: '', numeroVolume: '', dateDeParution: ''
+  };
+  this.showModal = true;
+}
 
   openEdit(o: any) {
-    this.isEditing = true;
-    this.form = { ...o, type: this.getType(o) };
-    this.showModal = true;
-  }
+  this.isEditing = true;
+  this.selectedAuteurIds = o.auteurs?.map((a: any) => a.id) || [];
+  this.showNewAuteur = false;
+  this.form = { ...o, type: this.getType(o) };
+  this.showModal = true;
+}
 
   save() {
-    this.successMessage = '';
-    this.errorMessage = '';
-    const endpoint = this.form.type === 'LIVRE' ? 'livres' : 'revues';
+  this.successMessage = '';
+  this.errorMessage = '';
+  const endpoint = this.form.type === 'LIVRE' ? 'livres' : 'revues';
 
-    if (this.isEditing) {
-      this.http.put(`${this.apiUrl}/${endpoint}/${this.form.id}`, this.form).subscribe({
-        next: () => {
-          this.showModal = false;
-          this.successMessage = 'Ouvrage modifié.';
-          this.loadOuvrages();
-        },
-        error: () => this.errorMessage = 'Erreur lors de la modification.'
-      });
-    } else {
-      this.http.post(`${this.apiUrl}/${endpoint}`, this.form).subscribe({
-        next: () => {
-          this.showModal = false;
-          this.successMessage = 'Ouvrage créé.';
-          this.loadOuvrages();
-        },
-        error: (err) => this.errorMessage = 'Erreur lors de la création: ' + err.message
-      });
-    }
+ 
+  const payload = {
+    ...this.form,
+    auteurs: this.selectedAuteurIds.map(id => ({ id }))
+  };
+
+  if (this.isEditing) {
+    this.http.put(`${this.apiUrl}/${endpoint}/${this.form.id}`, payload).subscribe({
+      next: () => {
+        this.showModal = false;
+        this.successMessage = 'Ouvrage modifié.';
+        this.loadOuvrages();
+      },
+      error: () => this.errorMessage = 'Erreur lors de la modification.'
+    });
+  } else {
+    this.http.post(`${this.apiUrl}/${endpoint}`, payload).subscribe({
+      next: () => {
+        this.showModal = false;
+        this.successMessage = 'Ouvrage créé.';
+        this.loadOuvrages();
+      },
+      error: (err) => this.errorMessage = 'Erreur lors de la création: ' + err.message
+    });
+  }
+}
+
+  
+  openDelete(o: any) {
+    this.ouvrageToDelete = o;
+    this.showDeleteModal = true;
   }
 
-  delete(o: any) {
-    if (!confirm(`Supprimer "${o.titre}" ?`)) return;
+  confirmerDelete() {
+    if (!this.ouvrageToDelete) return;
     this.successMessage = '';
     this.errorMessage = '';
-    const endpoint = this.getType(o) === 'LIVRE' ? 'livres' : 'revues';
-    this.http.delete(`${this.apiUrl}/${endpoint}/${o.id}`).subscribe({
+    const endpoint = this.getType(this.ouvrageToDelete) === 'LIVRE' ? 'livres' : 'revues';
+    this.http.delete(`${this.apiUrl}/${endpoint}/${this.ouvrageToDelete.id}`).subscribe({
       next: () => {
         this.successMessage = 'Ouvrage supprimé.';
+        this.showDeleteModal = false;
+        this.ouvrageToDelete = null;
+        if (this.selectedOuvrage?.id === this.ouvrageToDelete?.id) {
+          this.closeExemplaires();
+        }
         this.loadOuvrages();
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Erreur lors de la suppression.';
+        this.showDeleteModal = false;
         this.cdr.detectChanges();
       }
     });
   }
+
+  
 
   openExemplaires(o: any) {
     this.selectedOuvrage = o;
@@ -211,7 +275,6 @@ showNewCategorie = false;
     this.exemplaireLoading = true;
     this.errorMessage = '';
 
-
     const emplacement = {
       niveau: parseInt(this.exemplaireForm.niveau),
       numeroTravee: parseInt(this.exemplaireForm.numeroTravee),
@@ -234,9 +297,7 @@ showNewCategorie = false;
             this.successMessage = 'Exemplaire ajouté.';
             this.loadOuvrages();
             setTimeout(() => {
-              this.selectedOuvrage = this.ouvrages.find(
-                o => o.id === this.selectedOuvrage?.id
-              );
+              this.selectedOuvrage = this.ouvrages.find(o => o.id === this.selectedOuvrage?.id);
             }, 500);
           },
           error: (err) => {
@@ -252,37 +313,44 @@ showNewCategorie = false;
     });
   }
 
-  deleteExemplaire(ex: any) {
-    if (!confirm(`Supprimer l'exemplaire #${ex.codeBarre} ?`)) return;
-    this.http.delete(`${this.apiUrl}/exemplaires/${ex.id}`).subscribe({
+  
+  openDeleteExemplaire(ex: any) {
+    this.exemplaireToDelete = ex;
+    this.showDeleteExemplaireModal = true;
+  }
+
+  confirmerDeleteExemplaire() {
+    if (!this.exemplaireToDelete) return;
+    this.http.delete(`${this.apiUrl}/exemplaires/${this.exemplaireToDelete.id}`).subscribe({
       next: () => {
         this.successMessage = 'Exemplaire supprimé.';
+        this.showDeleteExemplaireModal = false;
+        this.exemplaireToDelete = null;
         this.loadOuvrages();
         setTimeout(() => {
-          this.selectedOuvrage = this.ouvrages.find(
-            o => o.id === this.selectedOuvrage?.id
-          );
+          this.selectedOuvrage = this.ouvrages.find(o => o.id === this.selectedOuvrage?.id);
         }, 500);
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Erreur lors de la suppression.';
+        this.showDeleteExemplaireModal = false;
         this.cdr.detectChanges();
       }
     });
   }
-  
-createAndSelectCategorie() {
-  if (!this.newCategorieNom.trim()) return;
-  this.http.post<any>(`${this.apiUrl}/categories`, { nom: this.newCategorieNom }).subscribe({
-    next: (cat) => {
-      this.categories.push(cat);
-      this.exemplaireForm.categorieId = cat.id;
-      this.newCategorieNom = '';
-      this.showNewCategorie = false;
-    },
-    error: () => this.errorMessage = 'Erreur lors de la création de la catégorie.'
-  });
-}
+
+  createAndSelectCategorie() {
+    if (!this.newCategorieNom.trim()) return;
+    this.http.post<any>(`${this.apiUrl}/categories`, { nom: this.newCategorieNom }).subscribe({
+      next: (cat) => {
+        this.categories.push(cat);
+        this.exemplaireForm.categorieId = cat.id;
+        this.newCategorieNom = '';
+        this.showNewCategorie = false;
+      },
+      error: () => this.errorMessage = 'Erreur lors de la création de la catégorie'
+    });
+  }
 
   getCategorieNom(ex: any): string {
     return ex.emplacement?.categorie?.nom || '—';

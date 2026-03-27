@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { Recherche } from './recherche';
 import { AuthService } from '../../../core/services/auth';
 
@@ -10,20 +11,28 @@ const mockOuvrages = [
   { id: 3, titre: 'Science & Vie', caution: 2, anneePublication: '2024-01-01', numeroVolume: 1260, auteurs: [], themes: [], exemplaires: [] }
 ];
 
+const authServiceMock = {
+  getUserId: () => '3',
+  getNom: () => 'Jean',
+  getRole: () => 'ETUDIANT',
+  isAdmin: () => false,
+  isLoggedIn: () => true
+};
+
 describe('Recherche', () => {
   let composant: Recherche;
   let fixture: ComponentFixture<Recherche>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
-    const authService = jasmine.createSpyObj('AuthService', ['getUserId', 'getNom', 'getRole', 'isAdmin', 'isLoggedIn']);
-    authService.getUserId.and.returnValue('3');
-    authService.getRole.and.returnValue('ETUDIANT');
-    authService.isAdmin.and.returnValue(false);
-
     await TestBed.configureTestingModule({
-      imports: [Recherche, HttpClientTestingModule, RouterTestingModule],
-      providers: [{ provide: AuthService, useValue: authService }]
+      imports: [Recherche],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: AuthService, useValue: authServiceMock }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(Recherche);
@@ -56,7 +65,7 @@ describe('Recherche', () => {
     expect(composant.filteredOuvrages.length).toBe(1);
   });
 
-  it('devrait retourner false pour hasDisponibleExemplaire() quand tout est emprunté', () => {
+  it('devrait retourner false quand tous les exemplaires sont empruntés', () => {
     expect(composant.hasDisponibleExemplaire(mockOuvrages[1])).toBe(false);
   });
 

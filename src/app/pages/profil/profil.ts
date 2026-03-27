@@ -37,40 +37,35 @@ export class Profil implements OnInit {
   }
 
   loadUser() {
-    this.loading = true;
-    const userId = this.authService.getUserId();
-    this.cdr.detectChanges();
+  this.loading = true;
+  const userId = this.authService.getUserId();
+  console.log('>>> userId:', userId);
+  console.log('>>> role:', this.authService.getRole());
+  console.log('>>> endpoint:', this.getEndpoint());
 
-    if (!userId) {
-      this.loading = false;
-      this.errorMessage = 'Impossible de charger le profil. Veuillez vous reconnecter.';
-      return;
-    }
-
-    
-    const endpoint = this.getEndpoint();
-    this.http.get<any>(`${this.apiUrl}/${endpoint}/${userId}`).subscribe({
-      next: (data) => {
-        this.user = data;
-        this.form.nom = data.nom || '';
-        this.form.prenom = data.prenom || '';
-        this.form.telephone = data.telephone || '';
-        this.loading = false;
-      },
-      error: () => {
-        
-        this.loading = false;
-        this.user = {
-          nom: this.authService.getNom(),
-          prenom: '',
-          email: '',
-          telephone: '',
-          caution: this.authService.getCaution()
-        };
-        this.form.nom = this.user.nom;
-      }
-    });
+  if (!userId) {
+    this.loading = false;
+    return;
   }
+
+  const endpoint = this.getEndpoint();
+  this.http.get<any>(`${this.apiUrl}/${endpoint}/${userId}`).subscribe({
+    next: (data) => {
+      
+      this.user = data;
+      this.form.nom = data.nom || '';
+      this.form.prenom = data.prenom || '';
+      this.form.telephone = data.telephone || '';
+      this.loading = false;
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.log('>>> error:', err);
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
   get roleLabel(): string {
     switch (this.authService.getRole()) {
