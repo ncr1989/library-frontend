@@ -22,6 +22,6 @@ jobs:
         - name: Install dependencies
           run: npm install
         - name: Build Angular Project
-          run: npm run start
+          run: npm run build
         - name: Run tests
           run: npm run test
