@@ -19,11 +19,9 @@ jobs:
           uses: actions/setup-node@v3
           with:
             node-version: '18.x'
-        - name: Install pnpm
-          run: npm install -g pnpm
         - name: Install dependencies
-          run: pnpm install --frozen-lockfile
+          run: npm install
         - name: Build Angular Project
-          run: pnpm build
+          run: ng serve
         - name: Run tests
-          run: pnpm tests
+          run: ng test
