@@ -17,7 +17,7 @@ describe('Login', () => {
     await TestBed.configureTestingModule({
       imports: [Login],
       providers: [
-        provideRouter([]),
+        provideRouter([{ path: '**', redirectTo: '' }]),
         { provide: AuthService, useValue: authServiceMock }
       ]
     }).compileComponents();

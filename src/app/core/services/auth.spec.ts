@@ -14,7 +14,7 @@ describe('AuthService', () => {
         AuthService,
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([])
+        provideRouter([{ path: '**', redirectTo: '' }])
       ]
     });
     service = TestBed.inject(AuthService);
