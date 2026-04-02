@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ddb472bfb391cf81493e6cc1432ec78053c7afe5
+          ref: 4e8411412fa2ef544e8a828f452fbb04a0fc2312
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -28,7 +28,7 @@ jobs:
         run: npm audit fix
 
       - name: Build Angular project
-        run: npm run build -- --base-href "/your-repo-name/"
+        run: npm run build 
 
       - name: Run tests
         run: npm run test
