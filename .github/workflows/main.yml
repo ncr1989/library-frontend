@@ -14,7 +14,9 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code 
-          uses: actions/checkout@3e6e1b28a1ad26ee9de8e2bd982ad79051943a60
+          uses: actions/checkout@v4
+          with:
+            ref: 3e6e1b28a1ad26ee9de8e2bd982ad79051943a60
         - name: Set up Node.js
           uses: actions/setup-node@v3
           with:
