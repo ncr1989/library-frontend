@@ -14,13 +14,15 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - name: Checkout code 
-          uses: actions/checkout@v3
+          uses: actions/checkout@3e6e1b28a1ad26ee9de8e2bd982ad79051943a60
         - name: Set up Node.js
           uses: actions/setup-node@v3
           with:
             node-version: '22.x'
         - name: Install dependencies
           run: npm install
+        - name: Npm audit
+          run: npm audit 
         - name: Build Angular Project
           run: npm run build
         - name: Run tests
