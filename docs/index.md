@@ -1,5 +1,3 @@
----
-icon: simple/
----
+
 
 ## Hello
