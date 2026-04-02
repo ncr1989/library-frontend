@@ -56,7 +56,8 @@ jobs:
 
       - name: Build docs
         run: zensical build --clean
-
+      - name: Check site output
+        run: ls -la site/ && cat site/index.html | head -5
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
