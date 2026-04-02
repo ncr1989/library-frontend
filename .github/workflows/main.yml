@@ -56,6 +56,11 @@ jobs:
 
       - name: Build docs
         run: zensical build --clean
+      - name: Debug structure
+        run: |
+          ls -la
+          ls -la docs/
+          cat zensical.yml 2>/dev/null || cat mkdocs.yml 2>/dev/null || echo "no config found"
       - name: Check site output
         run: ls -la site/ && cat site/index.html | head -5
       - name: Setup Pages
