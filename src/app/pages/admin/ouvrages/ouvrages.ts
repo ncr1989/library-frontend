@@ -27,8 +27,8 @@ export class Ouvrages implements OnInit {
   searchTerm = '';
   selectedType = '';
 
-  auteurs: any[] = [];                // liste complète
-selectedAuteurIds: number[] = [];   // auteurs sélectionnés pour le formulaire
+  auteurs: any[] = [];                
+selectedAuteurIds: number[] = [];   
 newAuteurNom = '';
 newAuteurPrenom = '';
 showNewAuteur = false;

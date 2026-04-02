@@ -19,7 +19,7 @@ describe('authGuard', () => {
     
     TestBed.configureTestingModule({
       providers: [
-        provideRouter([]),  // Empty routes - we'll mock navigation
+        provideRouter([{ path: '**', redirectTo: '' }]),  // Empty routes - we'll mock navigation
         { provide: AuthService, useValue: authServiceMock }
       ]
     });
