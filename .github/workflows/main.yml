@@ -16,7 +16,7 @@ jobs:
         - name: Checkout code 
           uses: actions/checkout@v4
           with:
-            ref: 3e6e1b28a1ad26ee9de8e2bd982ad79051943a60
+            ref: ddb472bfb391cf81493e6cc1432ec78053c7afe5
         - name: Set up Node.js
           uses: actions/setup-node@v3
           with:
