@@ -39,9 +39,6 @@ export class Profil implements OnInit {
   loadUser() {
   this.loading = true;
   const userId = this.authService.getUserId();
-  console.log('>>> userId:', userId);
-  console.log('>>> role:', this.authService.getRole());
-  console.log('>>> endpoint:', this.getEndpoint());
 
   if (!userId) {
     this.loading = false;

@@ -152,13 +152,19 @@
               <input class="form-control" [(ngModel)]="form.telephone" />
             </div>
             <div class="col-md-3">
-              <label class="form-label">Rôle *</label>
-              <select class="form-select" [(ngModel)]="form.role">
-                <option value="ETUDIANT">Étudiant</option>
-                <option value="ENSEIGNANT">Enseignant</option>
-                <option value="BIBLIOTHECAIRE">Bibliothécaire</option>
-              </select>
-            </div>
+  <label class="form-label">Rôle</label>
+  <select class="form-select" [(ngModel)]="form.role" *ngIf="!isEditing">
+    <option value="ETUDIANT">Étudiant</option>
+    <option value="ENSEIGNANT">Enseignant</option>
+    <option value="BIBLIOTHECAIRE">Bibliothécaire</option>
+  </select>
+  <input class="form-control"
+         *ngIf="isEditing"
+         [value]="form.role === 'ETUDIANT' ? 'Étudiant'
+                : form.role === 'ENSEIGNANT' ? 'Enseignant'
+                : 'Bibliothécaire'"
+         disabled />
+</div>
             <div class="col-md-3">
               <label class="form-label">Caution (€)</label>
               <input class="form-control" type="number"

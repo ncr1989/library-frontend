@@ -108,7 +108,7 @@ export class Emprunts implements OnInit {
         } else {
           this.successMessage = `Retour enregistré pour "${this.getTitre(this.selectedEmprunt)}".`;
         }
-
+        this.cdr.detectChanges();
         this.loadEmprunts();
       },
       error: (err) => {
