@@ -31,7 +31,6 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_TYPESCRIPT: true
-          VALIDATE_HTML: false
           VALIDATE_CSS: true
           VALIDATE_YAML: true
           VALIDATE_MARKDOWN: true
